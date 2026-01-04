@@ -895,7 +895,15 @@ class Solenoid < Formula
   end
 
   def install
-    virtualenv_install_with_resources
+    # Install source distribution resources first (excludes wheel-only packages)
+    virtualenv_install_with_resources(without: ["sqlite-vec", "torch"])
+
+    # Install wheel-only packages separately (they don't have source distributions)
+    %w[sqlite-vec torch].each do |r|
+      resource(r).stage do
+        system libexec/"bin/pip", "install", "--no-deps", Dir["*.whl"].first
+      end
+    end
   end
 
   def caveats
